@@ -20,7 +20,8 @@ def get_json(url):
 
 
 def moving_average(x, N):
-    return np.convolve(x, np.ones((N,)) / N)[(N - 1):]
+    #return np.convolve(x, np.ones((N,)) / N)[(N - 1):]
+    return np.convolve(x, np.ones((N,)) / N, mode='valid')
 
 
 
