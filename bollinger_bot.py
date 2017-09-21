@@ -48,7 +48,7 @@ def main():
 
 
 
-        #cryptocurrences.insert_many(parced_json)
+        cryptocurrences.insert_many(parced_json)
 
 
 
@@ -74,22 +74,27 @@ def main():
         result_to_update = moving_average(running_avg, 3)
 
         for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(1):
-            #result = cryptocurrency.update({{$set: u'rank': float(result_to_update)}})
-            result = cryptocurrency.update({'rank': float(result_to_update)})
+            result = cryptocurrency.update({u'upsert': "dgdfgdf"})
+            result = cryptocurrences.save(cryptocurrency)
 
-            result = cryptocurrency.update({'rank': float(result_to_update)})
-
-            #result = cryptocurrency.update({'$set': {'rank': float(result_to_update)}})
-
-            #temp = cryptocurrency.update({u'mov_avg': float(result_to_update)})
-            print(result)
-            pprint.pprint(cryptocurrency)
-            cryptocurrences.save(cryptocurrency)
+            #result = cryptocurrency.update_one()
+            #print(result)
+            #pprint.pprint(cryptocurrency)
+            #pprint.pprint(cryptocurrency["set"])
+        result = db.cryptocurrences.remove({u'upsert': "dgdfgdf"})
+        print(result)
+            #result = cryptocurrency.update()
+            #print(result)
+            #pprint.pprint(cryptocurrency)
+            #result = cryptocurrences.save(cryptocurrency)
+            #print(result)
+            #pprint.pprint(cryptocurrency)
 
 
         #db.users.update({name: "Tom"}, {name: "Tom", age: 25}, {upsert: true})
 
         for cryptocurrency in cryptocurrences.find():
+            pass
             pprint.pprint(cryptocurrency)
 
         #print(moving_average(running_avg, 3))
