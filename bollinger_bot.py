@@ -53,7 +53,7 @@ def main():
 
 
         #db insert data
-        cryptocurrences.insert_many(parced_json)
+        #cryptocurrences.insert_many(parced_json)
 
 
 
@@ -94,6 +94,36 @@ def main():
         #deleting part of collection with condition
         #result = db.cryptocurrences.remove({u'name': "Bitcoin"})
         #print(result)
+
+
+
+        # calculating numpy std for last updated price in result_to_update
+        running_avg = []
+        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", 1).limit(10):
+            # pprint.pprint(cryptocurrency)
+            # pprint.pprint(float(cryptocurrency[u'price_usd']))
+            running_avg.append(float(cryptocurrency[u'price_usd']))
+        result_to_update = np.std(running_avg)
+        print(running_avg)
+        print(result_to_update)
+
+
+
+
+
+        # creating 'upper_bb_line' and 'lower_bb_line' for last_updated point
+        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(1):
+            #upper line
+            print(float(cryptocurrency[u'mov_avg']))
+            result = cryptocurrency.update({u'upp_bbl': float(cryptocurrency[u'mov_avg']) + 2 * float(result_to_update)})
+            print(result)
+            result = cryptocurrences.save(cryptocurrency)
+            print(result)
+            #lower line
+            result = cryptocurrency.update({u'low_bbl': float(cryptocurrency[u'mov_avg']) - 2 * float(result_to_update)})
+            print(result)
+            result = cryptocurrences.save(cryptocurrency)
+            print(result)
 
 
 
