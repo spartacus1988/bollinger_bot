@@ -5,6 +5,8 @@
 #from pyalgotrade.technical import bollinger
 #from pyalgotrade.stratanalyzer import sharpe
 
+
+import smtplib
 import time
 import numpy as np
 import pprint
@@ -127,16 +129,35 @@ def main():
 
 
 
+        #sending to e-mail
+        smtpObj = smtplib.SMTP('smtp.gmail.com', 587)       #connecting to gmail
+        smtpObj.starttls()                                  #TLS(Transport Layer Security) on
+        addressee = []
+        credentials = {}
+        with open('Usernames.txt', 'r') as f:
+            for line in f:
+                user, pwd = line.strip().split(':')
+                credentials[user] = pwd
+                break
+            for line in f:
+                user, pwd = line.strip().split(':')
+                addressee.append(user)
+                break
+        for username in credentials:
+            print(username)
+            smtpObj.login(username, credentials[username])
+            smtpObj.sendmail(username, addressee, "go chat!")
+            smtpObj.quit()
+        print(addressee)
+
+
+
         # show all database
         for cryptocurrency in cryptocurrences.find():
             pass
-            pprint.pprint(cryptocurrency)
+            #pprint.pprint(cryptocurrency)
 
-
-
-
-
-
+        #delay for 5 minutes
         time.sleep(3000)
 
 
