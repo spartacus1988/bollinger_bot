@@ -170,7 +170,7 @@ def main():
             #pprint.pprint(cryptocurrency)
 
         #delay for 5 minutes
-        time.sleep(3000)
+        time.sleep(300)
 
 
 
