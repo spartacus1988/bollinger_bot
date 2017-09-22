@@ -1,13 +1,6 @@
-#from pyalgotrade import strategy
-#from pyalgotrade import plotter
-#from pyalgotrade.tools import yahoofinance
-#from pyalgotrade.barfeed import yahoofeed
-#from pyalgotrade.technical import bollinger
-#from pyalgotrade.stratanalyzer import sharpe
-
-
 import smtplib
 import time
+import datetime
 import numpy as np
 import pprint
 import requests
@@ -55,15 +48,7 @@ def main():
 
 
         #db insert data
-        #cryptocurrences.insert_many(parced_json)
-
-
-
-
-        #show all database
-        #for cryptocurrency in cryptocurrences.find():
-            #pprint.pprint(cryptocurrency)
-
+        cryptocurrences.insert_many(parced_json)
 
 
         # show all Bitcoin prices in db
@@ -111,8 +96,6 @@ def main():
 
 
 
-
-
         # creating 'upper_bb_line' and 'lower_bb_line' for last_updated point
         for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(1):
             #upper line
@@ -129,27 +112,56 @@ def main():
 
 
 
-        #sending to e-mail
-        smtpObj = smtplib.SMTP('smtp.gmail.com', 587)       #connecting to gmail
-        smtpObj.starttls()                                  #TLS(Transport Layer Security) on
-        addressee = []
-        credentials = {}
-        with open('Usernames.txt', 'r') as f:
-            for line in f:
-                user, pwd = line.strip().split(':')
-                credentials[user] = pwd
-                break
-            for line in f:
-                user, pwd = line.strip().split(':')
-                addressee.append(user)
-                break
-        for username in credentials:
-            print(username)
-            smtpObj.login(username, credentials[username])
-            smtpObj.sendmail(username, addressee, "go chat!")
-            smtpObj.quit()
-        print(addressee)
-
+        #sending to e-mail with condition
+        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(1):
+            if float(cryptocurrency[u'mov_avg']) < float(cryptocurrency[u'low_bbl']) + (float(cryptocurrency[u'upp_bbl'])-float(cryptocurrency[u'low_bbl'])) * 0.05 and float(cryptocurrency[u'mov_avg']) > float(cryptocurrency[u'low_bbl']):
+                addressee = []
+                credentials = {}
+                msg = "Subject: Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")" \
+                      "Body: Price for " + cryptocurrency[u'name'] + " currency is within a buying range." \
+                      "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD." \
+                      "Timestamp: " + datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")
+                with open('Usernames.txt', 'r') as f:
+                    for line in f:
+                        user, pwd = line.strip().split(':')
+                        credentials[user] = pwd
+                        break
+                    for line in f:
+                        user, pwd = line.strip().split(':')
+                        addressee.append(user)
+                        break
+                for username in credentials:
+                    print(username)
+                    smtpObj = smtplib.SMTP('smtp.gmail.com', 587)           # connecting to gmail
+                    smtpObj.starttls()                                      # TLS(Transport Layer Security) on
+                    smtpObj.login(username, credentials[username])
+                    smtpObj.sendmail(username, addressee, msg)
+                    smtpObj.quit()
+                print(addressee)
+            elif float(cryptocurrency[u'mov_avg']) < float(cryptocurrency[u'low_bbl']):
+                addressee = []
+                credentials = {}
+                msg = "Subject: Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")" \
+                       "Body: Price for " + cryptocurrency[u'name'] + " currency is within a selling range." \
+                       "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD." \
+                        "Timestamp: " + datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")
+                with open('Usernames.txt', 'r') as f:
+                    for line in f:
+                        user, pwd = line.strip().split(':')
+                        credentials[user] = pwd
+                        break
+                    for line in f:
+                        user, pwd = line.strip().split(':')
+                        addressee.append(user)
+                        break
+                for username in credentials:
+                    print(username)
+                    smtpObj = smtplib.SMTP('smtp.gmail.com', 587)           # connecting to gmail
+                    smtpObj.starttls()                                      # TLS(Transport Layer Security) on
+                    smtpObj.login(username, credentials[username])
+                    smtpObj.sendmail(username, addressee, msg)
+                    smtpObj.quit()
+                print(addressee)
 
 
         # show all database
