@@ -20,8 +20,13 @@ def get_json(url):
 
 
 def moving_average(x, N):
-    #return np.convolve(x, np.ones((N,)) / N)[(N - 1):]
-    return np.convolve(x, np.ones((N,)) / N, mode='valid')
+    if (len(x)<3):
+        print("x<3")
+        return x[0]
+    else:
+        print("x>3")
+        #return np.convolve(x, np.ones((N,)) / N)[(N - 1):]
+        return np.convolve(x, np.ones((N,)) / N, mode='valid')
 
 
 
@@ -33,21 +38,21 @@ def main():
         #time.sleep(300)
 
 
+        #getting request
         url = "https://api.coinmarketcap.com/v1/ticker/?limit=1"
         json = get_json(url)
         #print(json)
-
-
         parced_json = jsn.loads(json)
         #print(parced_json[1])
 
 
+        #db init
         client = MongoClient('localhost', 27017)
         db = client.crypto_database
         cryptocurrences = db.cryptocurrences
 
 
-
+        #db insert data
         cryptocurrences.insert_many(parced_json)
 
 
@@ -59,45 +64,45 @@ def main():
 
 
 
-
+        # show all Bitcoin prices in db
         #for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}):
             #pprint.pprint(cryptocurrency)
             #pprint.pprint(float(cryptocurrency[u'price_usd']))
             #running_avg.append(float(cryptocurrency[u'price_usd']))
 
+
+
+        # calculating moving average for last updated price in result_to_update
         running_avg = []
         for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(3):
             #pprint.pprint(cryptocurrency)
             #pprint.pprint(float(cryptocurrency[u'price_usd']))
             running_avg.append(float(cryptocurrency[u'price_usd']))
-
         result_to_update = moving_average(running_avg, 3)
+        print(result_to_update)
 
+
+        #creating 'mov_avg' for last_updated point
         for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(1):
-            result = cryptocurrency.update({u'upsert': "dgdfgdf"})
+            result = cryptocurrency.update({u'mov_avg': float(result_to_update)})
+            print(result)
             result = cryptocurrences.save(cryptocurrency)
-
-            #result = cryptocurrency.update_one()
-            #print(result)
-            #pprint.pprint(cryptocurrency)
-            #pprint.pprint(cryptocurrency["set"])
-        result = db.cryptocurrences.remove({u'upsert': "dgdfgdf"})
-        print(result)
-            #result = cryptocurrency.update()
-            #print(result)
-            #pprint.pprint(cryptocurrency)
-            #result = cryptocurrences.save(cryptocurrency)
-            #print(result)
-            #pprint.pprint(cryptocurrency)
+            print(result)
 
 
-        #db.users.update({name: "Tom"}, {name: "Tom", age: 25}, {upsert: true})
 
+        #deleting part of collection with condition
+        #result = db.cryptocurrences.remove({u'name': "Bitcoin"})
+        #print(result)
+
+
+
+        # show all database
         for cryptocurrency in cryptocurrences.find():
             pass
             pprint.pprint(cryptocurrency)
 
-        #print(moving_average(running_avg, 3))
+
 
 
 
