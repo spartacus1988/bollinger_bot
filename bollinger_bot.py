@@ -51,9 +51,26 @@ def main():
 
         #db insert data
         cryptocurrences.insert_many(parced_json)
+        #cryptocurrences.update(parced_json)
 
+        #deleting duplicate of collection with same "last_updated"
+        to_compare = []
+        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(2):
+            to_compare.append(cryptocurrency[u'last_updated'])
+        print(to_compare)
+        print(to_compare[0])
+        print(to_compare.__len__())
+        print(db.cryptocurrences.count())
+        if to_compare.__len__() > 1  and to_compare[0] == to_compare[1]:
+            result = db.cryptocurrences.remove({u'name': "Bitcoin", u'last_updated': to_compare[0]})
+            print(result)
 
-        # show all Bitcoin prices in db
+        #show all database
+        for cryptocurrency in cryptocurrences.find():
+            pass
+            #pprint.pprint(cryptocurrency)
+
+        #show all Bitcoin prices in db
         #for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}):
             #pprint.pprint(cryptocurrency)
             #pprint.pprint(float(cryptocurrency[u'price_usd']))
@@ -61,7 +78,7 @@ def main():
 
 
 
-        # calculating moving average for last updated price in result_to_update
+        #calculating moving average for last updated price in result_to_update
         running_avg = []
         for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(3):
             #pprint.pprint(cryptocurrency)
@@ -99,7 +116,7 @@ def main():
 
 
         # creating 'upper_bb_line' and 'lower_bb_line' for last_updated point
-        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", 1).limit(1):
+        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(1):
             #upper line
             print(float(cryptocurrency[u'mov_avg']))
             result = cryptocurrency.update({u'upp_bbl': float(cryptocurrency[u'mov_avg']) + 2 * float(result_to_update)})
@@ -115,7 +132,7 @@ def main():
 
 
         #sending to e-mail with condition
-        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", 1).limit(1):
+        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(1):
             if float(cryptocurrency[u'mov_avg']) < float(cryptocurrency[u'low_bbl']) + (float(cryptocurrency[u'upp_bbl'])-float(cryptocurrency[u'low_bbl'])) * 0.05 and float(cryptocurrency[u'mov_avg']) > float(cryptocurrency[u'low_bbl']):
                 addressee = []
                 credentials = {}
@@ -168,27 +185,27 @@ def main():
         # show all database
         for cryptocurrency in cryptocurrences.find():
             pass
-            pprint.pprint(cryptocurrency)
+            #pprint.pprint(cryptocurrency)
 
+        # creating charts
+        x = []
+        y = []
+        z = []
+        u_bbl = []
+        l_bbl = []
 
-        #creating charts
         for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", 1).limit(9):
-            x = []
-            y = []
-            z = []
-            u_bbl = []
-            l_bbl = []
             x.append(float(cryptocurrency[u'last_updated']))
             y.append(float(cryptocurrency[u'price_usd']))
             z.append(float(cryptocurrency[u'mov_avg']))
-            #u_bbl.append(float(cryptocurrency[u'upp_bbl']))
-            #l_bbl.append(float(cryptocurrency[u'low_bbl']))
+            u_bbl.append(float(cryptocurrency[u'upp_bbl']))
+            l_bbl.append(float(cryptocurrency[u'low_bbl']))
 
         #plt.plot(x, y)
         plt.plot(x, y, color='red', marker='o', linestyle='--', label='price_usd')
         plt.plot(x, z, color='blue', marker='x', linestyle='--', label='mov_avg')
-        #plt.plot(x, u_bbl, color='green', marker='o', linestyle='--', label='upp_bbl')
-        #plt.plot(x, l_bbl, color='green', marker='o', linestyle='--', label='low_bbl')
+        plt.plot(x, u_bbl, color='green', marker='o', linestyle='--', label='upp_bbl')
+        plt.plot(x, l_bbl, color='green', marker='o', linestyle='--', label='low_bbl')
         plt.grid()
         plt.legend(loc='best')
         #plt.show()
