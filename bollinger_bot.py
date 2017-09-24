@@ -7,6 +7,8 @@ import requests
 import json as jsn
 from pymongo import MongoClient
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+#mpl.rcParams['legend.numpoints'] = 3
 #%matplotlib inline
 
 
@@ -29,9 +31,12 @@ def moving_average(x, N):
 
 
 def main():
+    first_one = True
     # https: // api.coinmarketcap.com / v1 / ticker /?limit = 5
     while True:
         print ("This prints once a 5 minutes.")
+
+
         #time.sleep(300)
 
 
@@ -194,7 +199,7 @@ def main():
         u_bbl = []
         l_bbl = []
 
-        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", 1).limit(9):
+        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", 1).limit(20):
             x.append(float(cryptocurrency[u'last_updated']))
             y.append(float(cryptocurrency[u'price_usd']))
             z.append(float(cryptocurrency[u'mov_avg']))
@@ -202,10 +207,14 @@ def main():
             l_bbl.append(float(cryptocurrency[u'low_bbl']))
 
         #plt.plot(x, y)
-        plt.plot(x, y, color='red', marker='o', linestyle='--', label='price_usd')
-        plt.plot(x, z, color='blue', marker='x', linestyle='--', label='mov_avg')
-        plt.plot(x, u_bbl, color='green', marker='o', linestyle='--', label='upp_bbl')
-        plt.plot(x, l_bbl, color='green', marker='o', linestyle='--', label='low_bbl')
+        if first_one:
+            my_labels = {"y": "price_usd", "z": "mov_avg", "u_bbl": "upp_bbl", "l_bbl": "low_bbl"}
+        else:
+            my_labels = {"y": "_nolegend_", "z": "_nolegend_", "u_bbl": "_nolegend_", "l_bbl": "_nolegend_"}
+        scat1 = plt.plot(x, y, color='red', marker='o', linestyle='--', label=my_labels["y"])
+        scat2 = plt.plot(x, z, color='blue', marker='o', linestyle='--', label=my_labels["z"])
+        scat3 = plt.plot(x, u_bbl, color='green', marker='o', linestyle='--', label=my_labels["u_bbl"])
+        scat4 = plt.plot(x, l_bbl, color='green', marker='o', linestyle='--', label=my_labels["l_bbl"])
         plt.grid()
         plt.legend(loc='best')
         #plt.show()
@@ -220,6 +229,7 @@ def main():
             pprint.pprint(cryptocurrency)
 
         #delay for 5 minutes
+        first_one = False
         time.sleep(300)
 
 
