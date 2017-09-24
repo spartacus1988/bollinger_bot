@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import mimetypes
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
+from email.mime.text import MIMEText
 
 
 
@@ -49,26 +50,13 @@ def send_mail(username, credential, addressee, msg_sub, msg_body):
     msg['Subject'] = msg_sub
     msg['From'] = username
     msg['To'] = ','.join(addressee)
-    msg.preamble = msg_body
+    text = MIMEText(msg_body)
+    text.add_header("Content-Disposition", "inline")
+    msg.attach(text)
 
     attach = MIMEApplication(open(path, 'rb').read())
     attach.add_header('Content-Disposition', 'attachment', filename='fig_1.png')
     msg.attach(attach)
-
-    print(msg.as_string())
-
-    #server = smtplib.SMTP('smtp.somehost.com')
-    #server.set_debuglevel(1)
-    #server.sendmail(username, addressee, msg.as_string())
-    #server.quit()
-
-    #m = MIMEText(content, 'plain', 'utf-8')
-    #print m.as_string()
-    #m = MIMEText(content.encode('utf-8'), 'plain', 'utf-8')
-    #print m.as_string()
-    #print base64.encodestring(content.encode('utf-8'))
-
-
 
     smtpObj = smtplib.SMTP('smtp.gmail.com', 587)               # connecting to gmail
     smtpObj.starttls()                                          # TLS(Transport Layer Security) on
@@ -82,10 +70,7 @@ def main():
     # https: // api.coinmarketcap.com / v1 / ticker /?limit = 5
     while True:
         print ("This prints once a 5 minutes.")
-
-
         #time.sleep(300)
-
 
         #getting request
         url = "https://api.coinmarketcap.com/v1/ticker/?limit=1"
@@ -109,13 +94,13 @@ def main():
         to_compare = []
         for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(2):
             to_compare.append(cryptocurrency[u'last_updated'])
-        print(to_compare)
-        print(to_compare[0])
-        print(to_compare.__len__())
-        print(db.cryptocurrences.count())
+        #print(to_compare)
+        #print(to_compare[0])
+        #print(to_compare.__len__())
+        #print(db.cryptocurrences.count())
         if to_compare.__len__() > 1  and to_compare[0] == to_compare[1]:
             result = db.cryptocurrences.remove({u'name': "Bitcoin", u'last_updated': to_compare[0]})
-            print(result)
+            #print(result)
 
         #show all database
         for cryptocurrency in cryptocurrences.find():
@@ -127,7 +112,6 @@ def main():
             #pprint.pprint(cryptocurrency)
             #pprint.pprint(float(cryptocurrency[u'price_usd']))
             #running_avg.append(float(cryptocurrency[u'price_usd']))
-
 
 
         #calculating moving average for last updated price in result_to_update
@@ -148,11 +132,9 @@ def main():
             print(result)
 
 
-
         #deleting part of collection with condition
         #result = db.cryptocurrences.remove({u'name': "Bitcoin"})
         #print(result)
-
 
 
         # calculating numpy std for last updated price in result_to_update
@@ -164,7 +146,6 @@ def main():
         result_to_update = np.std(running_avg)
         print(running_avg)
         print(result_to_update)
-
 
 
         # creating 'upper_bb_line' and 'lower_bb_line' for last_updated point
@@ -182,58 +163,35 @@ def main():
             print(result)
 
 
-
         #sending to e-mail with condition
         for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(1):
-            if True: #float(cryptocurrency[u'mov_avg']) < float(cryptocurrency[u'low_bbl']) + (float(cryptocurrency[u'upp_bbl'])-float(cryptocurrency[u'low_bbl'])) * 0.05 and float(cryptocurrency[u'mov_avg']) > float(cryptocurrency[u'low_bbl']):
-
-                msg = "Subject: Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")" \
-                      "Body: Price for " + cryptocurrency[u'name'] + " currency is within a buying range." \
-                      "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD." \
-                      "Timestamp: " + datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")
-
-
+            if float(cryptocurrency[u'mov_avg']) < float(cryptocurrency[u'low_bbl']) + (float(cryptocurrency[u'upp_bbl'])-float(cryptocurrency[u'low_bbl'])) * 0.05 and float(cryptocurrency[u'mov_avg']) > float(cryptocurrency[u'low_bbl']):
                 msg_sub =  "Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")"
                 msg_body = "Price for " + cryptocurrency[u'name'] + " currency is within a buying range.\n" \
                            "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD.\n" \
                            "Timestamp: " + datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p") + "\n"
-
-
                 credentials, addressee = extract_mail_data()
 
                 for username in credentials:
                     send_mail(username, credentials[username], addressee, msg_sub, msg_body)
-                    #smtpObj = smtplib.SMTP('smtp.gmail.com', 587)           # connecting to gmail
-                    #smtpObj.starttls()                                      # TLS(Transport Layer Security) on
-                    #smtpObj.login(username, credentials[username])
-                    #smtpObj.sendmail(username, addressee, msg)
-                    #smtpObj.quit()
 
             elif float(cryptocurrency[u'mov_avg']) < float(cryptocurrency[u'low_bbl']):
 
-                msg = "Subject: Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")" \
-                       "Body: Price for " + cryptocurrency[u'name'] + " currency is within a selling range." \
-                       "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD." \
-                        "Timestamp: " + datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")
-
+                msg_sub =  "Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")"
+                msg_body = "Price for " + cryptocurrency[u'name'] + " currency is within a selling range.\n" \
+                           "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD.\n" \
+                           "Timestamp: " + datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p") + "\n"
                 credentials, addressee = extract_mail_data()
 
-
                 for username in credentials:
-                    print(username)
-                    smtpObj = smtplib.SMTP('smtp.gmail.com', 587)           # connecting to gmail
-                    smtpObj.starttls()                                      # TLS(Transport Layer Security) on
-                    smtpObj.login(username, credentials[username])
-                    smtpObj.sendmail(username, addressee, msg)
-                    smtpObj.quit()
-                print(addressee)
-
+                    send_mail(username, credentials[username], addressee, msg_sub, msg_body)
 
 
         # show all database
         for cryptocurrency in cryptocurrences.find():
             pass
             #pprint.pprint(cryptocurrency)
+
 
         # creating charts
         x = []
@@ -248,9 +206,6 @@ def main():
             z.append(float(cryptocurrency[u'mov_avg']))
             u_bbl.append(float(cryptocurrency[u'upp_bbl']))
             l_bbl.append(float(cryptocurrency[u'low_bbl']))
-
-
-
 
         #plt.plot(x, y)
         if first_one:
@@ -267,17 +222,33 @@ def main():
         plt.savefig("fig_1")
 
 
-
-
         # show all database
         for cryptocurrency in cryptocurrences.find():
             pass
-            pprint.pprint(cryptocurrency)
+            #pprint.pprint(cryptocurrency)
+
+
+        #calculating size of db and cleen it, if it's needed
+        #time.time()-1_000_000 is for 10 days ago
+        #week_ago = time.time()-1000000 + 999999
+        week_ago = time.time() - 1000000
+        mod = {"$lt": {}}
+        mod["$lt"] = str(week_ago)
+        #print(week_ago)
+        #print(mod)
+        #for cryptocurrency in cryptocurrences.find({u'name': "Bitcoin", u'last_updated': {"$lt": "1506285336"}}):
+
+        #for cryptocurrency in cryptocurrences.find({u'name': "Bitcoin", u'last_updated': mod}):
+            #print("less then \n")
+            #print(cryptocurrency)
+            #print(time.time()-1000000)
+        result = db.cryptocurrences.remove({u'name': "Bitcoin", u'last_updated': mod})
+        #print(result)
+
 
         #delay for 5 minutes
         first_one = False
         time.sleep(300)
-
 
 
 if __name__ == "__main__":
