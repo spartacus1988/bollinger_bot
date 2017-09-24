@@ -7,9 +7,10 @@ import requests
 import json as jsn
 from pymongo import MongoClient
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-#mpl.rcParams['legend.numpoints'] = 3
-#%matplotlib inline
+import mimetypes
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+
 
 
 
@@ -27,7 +28,19 @@ def moving_average(x, N):
         #return np.convolve(x, np.ones((N,)) / N)[(N - 1):]
         return np.convolve(x, np.ones((N,)) / N, mode='valid')
 
-
+def extract_mail_data():
+    addressee = []
+    credentials = {}
+    with open('Usernames.txt', 'r') as f:
+        for line in f:
+            user, pwd = line.strip().split(':')
+            credentials[user] = pwd
+            break
+        for line in f:
+            user, pwd = line.strip().split(':')
+            addressee.append(user)
+            break
+    return credentials, addressee
 
 
 def main():
@@ -138,22 +151,27 @@ def main():
 
         #sending to e-mail with condition
         for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(1):
-            if float(cryptocurrency[u'mov_avg']) < float(cryptocurrency[u'low_bbl']) + (float(cryptocurrency[u'upp_bbl'])-float(cryptocurrency[u'low_bbl'])) * 0.05 and float(cryptocurrency[u'mov_avg']) > float(cryptocurrency[u'low_bbl']):
-                addressee = []
-                credentials = {}
+            if True: #float(cryptocurrency[u'mov_avg']) < float(cryptocurrency[u'low_bbl']) + (float(cryptocurrency[u'upp_bbl'])-float(cryptocurrency[u'low_bbl'])) * 0.05 and float(cryptocurrency[u'mov_avg']) > float(cryptocurrency[u'low_bbl']):
+                #addressee = []
+                #credentials = {}
                 msg = "Subject: Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")" \
                       "Body: Price for " + cryptocurrency[u'name'] + " currency is within a buying range." \
                       "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD." \
                       "Timestamp: " + datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")
-                with open('Usernames.txt', 'r') as f:
-                    for line in f:
-                        user, pwd = line.strip().split(':')
-                        credentials[user] = pwd
-                        break
-                    for line in f:
-                        user, pwd = line.strip().split(':')
-                        addressee.append(user)
-                        break
+                #with open('Usernames.txt', 'r') as f:
+                #    for line in f:
+                #        user, pwd = line.strip().split(':')
+                #        credentials[user] = pwd
+                #        break
+                #    for line in f:
+                #        user, pwd = line.strip().split(':')
+                #        addressee.append(user)
+                #        break
+
+                credentials, addressee = extract_mail_data()
+                print(credentials)
+                print(addressee)
+
                 for username in credentials:
                     print(username)
                     smtpObj = smtplib.SMTP('smtp.gmail.com', 587)           # connecting to gmail
@@ -163,21 +181,25 @@ def main():
                     smtpObj.quit()
                 print(addressee)
             elif float(cryptocurrency[u'mov_avg']) < float(cryptocurrency[u'low_bbl']):
-                addressee = []
-                credentials = {}
+                #addressee = []
+                #credentials = {}
                 msg = "Subject: Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")" \
                        "Body: Price for " + cryptocurrency[u'name'] + " currency is within a selling range." \
                        "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD." \
                         "Timestamp: " + datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")
-                with open('Usernames.txt', 'r') as f:
-                    for line in f:
-                        user, pwd = line.strip().split(':')
-                        credentials[user] = pwd
-                        break
-                    for line in f:
-                        user, pwd = line.strip().split(':')
-                        addressee.append(user)
-                        break
+                #with open('Usernames.txt', 'r') as f:
+                #    for line in f:
+                #        user, pwd = line.strip().split(':')
+                #        credentials[user] = pwd
+                #        break
+                #    for line in f:
+                #        user, pwd = line.strip().split(':')
+                #        addressee.append(user)
+                #        break
+                credentials, addressee = extract_mail_data()
+                print(credentials)
+                print(addressee)
+
                 for username in credentials:
                     print(username)
                     smtpObj = smtplib.SMTP('smtp.gmail.com', 587)           # connecting to gmail
@@ -205,6 +227,9 @@ def main():
             z.append(float(cryptocurrency[u'mov_avg']))
             u_bbl.append(float(cryptocurrency[u'upp_bbl']))
             l_bbl.append(float(cryptocurrency[u'low_bbl']))
+
+
+
 
         #plt.plot(x, y)
         if first_one:
