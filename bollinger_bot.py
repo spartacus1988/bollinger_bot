@@ -43,6 +43,40 @@ def extract_mail_data():
     return credentials, addressee
 
 
+def send_mail(username, credential, addressee, msg_sub, msg_body):
+    path = 'fig_1.png'
+    msg = MIMEMultipart()
+    msg['Subject'] = msg_sub
+    msg['From'] = username
+    msg['To'] = ','.join(addressee)
+    msg.preamble = msg_body
+
+    attach = MIMEApplication(open(path, 'rb').read())
+    attach.add_header('Content-Disposition', 'attachment', filename='fig_1.png')
+    msg.attach(attach)
+
+    print(msg.as_string())
+
+    #server = smtplib.SMTP('smtp.somehost.com')
+    #server.set_debuglevel(1)
+    #server.sendmail(username, addressee, msg.as_string())
+    #server.quit()
+
+    #m = MIMEText(content, 'plain', 'utf-8')
+    #print m.as_string()
+    #m = MIMEText(content.encode('utf-8'), 'plain', 'utf-8')
+    #print m.as_string()
+    #print base64.encodestring(content.encode('utf-8'))
+
+
+
+    smtpObj = smtplib.SMTP('smtp.gmail.com', 587)               # connecting to gmail
+    smtpObj.starttls()                                          # TLS(Transport Layer Security) on
+    smtpObj.login(username, credential)
+    smtpObj.sendmail(username, addressee, msg.as_string())
+    smtpObj.quit()
+
+
 def main():
     first_one = True
     # https: // api.coinmarketcap.com / v1 / ticker /?limit = 5
@@ -152,53 +186,38 @@ def main():
         #sending to e-mail with condition
         for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(1):
             if True: #float(cryptocurrency[u'mov_avg']) < float(cryptocurrency[u'low_bbl']) + (float(cryptocurrency[u'upp_bbl'])-float(cryptocurrency[u'low_bbl'])) * 0.05 and float(cryptocurrency[u'mov_avg']) > float(cryptocurrency[u'low_bbl']):
-                #addressee = []
-                #credentials = {}
+
                 msg = "Subject: Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")" \
                       "Body: Price for " + cryptocurrency[u'name'] + " currency is within a buying range." \
                       "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD." \
                       "Timestamp: " + datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")
-                #with open('Usernames.txt', 'r') as f:
-                #    for line in f:
-                #        user, pwd = line.strip().split(':')
-                #        credentials[user] = pwd
-                #        break
-                #    for line in f:
-                #        user, pwd = line.strip().split(':')
-                #        addressee.append(user)
-                #        break
+
+
+                msg_sub =  "Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")"
+                msg_body = "Price for " + cryptocurrency[u'name'] + " currency is within a buying range.\n" \
+                           "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD.\n" \
+                           "Timestamp: " + datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p") + "\n"
+
 
                 credentials, addressee = extract_mail_data()
-                print(credentials)
-                print(addressee)
 
                 for username in credentials:
-                    print(username)
-                    smtpObj = smtplib.SMTP('smtp.gmail.com', 587)           # connecting to gmail
-                    smtpObj.starttls()                                      # TLS(Transport Layer Security) on
-                    smtpObj.login(username, credentials[username])
-                    smtpObj.sendmail(username, addressee, msg)
-                    smtpObj.quit()
-                print(addressee)
+                    send_mail(username, credentials[username], addressee, msg_sub, msg_body)
+                    #smtpObj = smtplib.SMTP('smtp.gmail.com', 587)           # connecting to gmail
+                    #smtpObj.starttls()                                      # TLS(Transport Layer Security) on
+                    #smtpObj.login(username, credentials[username])
+                    #smtpObj.sendmail(username, addressee, msg)
+                    #smtpObj.quit()
+
             elif float(cryptocurrency[u'mov_avg']) < float(cryptocurrency[u'low_bbl']):
-                #addressee = []
-                #credentials = {}
+
                 msg = "Subject: Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")" \
                        "Body: Price for " + cryptocurrency[u'name'] + " currency is within a selling range." \
                        "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD." \
                         "Timestamp: " + datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")
-                #with open('Usernames.txt', 'r') as f:
-                #    for line in f:
-                #        user, pwd = line.strip().split(':')
-                #        credentials[user] = pwd
-                #        break
-                #    for line in f:
-                #        user, pwd = line.strip().split(':')
-                #        addressee.append(user)
-                #        break
+
                 credentials, addressee = extract_mail_data()
-                print(credentials)
-                print(addressee)
+
 
                 for username in credentials:
                     print(username)
@@ -208,6 +227,8 @@ def main():
                     smtpObj.sendmail(username, addressee, msg)
                     smtpObj.quit()
                 print(addressee)
+
+
 
         # show all database
         for cryptocurrency in cryptocurrences.find():
