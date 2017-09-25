@@ -165,7 +165,7 @@ def main():
 
         #sending to e-mail with condition
         for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(1):
-            if float(cryptocurrency[u'mov_avg']) < float(cryptocurrency[u'low_bbl']) + (float(cryptocurrency[u'upp_bbl'])-float(cryptocurrency[u'low_bbl'])) * 0.05 and float(cryptocurrency[u'mov_avg']) > float(cryptocurrency[u'low_bbl']):
+            if float(cryptocurrency[u'price_usd']) < float(cryptocurrency[u'low_bbl']) + (float(cryptocurrency[u'upp_bbl'])-float(cryptocurrency[u'low_bbl'])) * 0.05 and float(cryptocurrency[u'price_usd']) > float(cryptocurrency[u'low_bbl']):
                 msg_sub =  "Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")"
                 msg_body = "Price for " + cryptocurrency[u'name'] + " currency is within a buying range.\n" \
                            "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD.\n" \
@@ -175,7 +175,18 @@ def main():
                 for username in credentials:
                     send_mail(username, credentials[username], addressee, msg_sub, msg_body)
 
-            elif float(cryptocurrency[u'mov_avg']) < float(cryptocurrency[u'low_bbl']):
+            elif float(cryptocurrency[u'price_usd']) > float(cryptocurrency[u'upp_bbl']) - (float(cryptocurrency[u'upp_bbl'])-float(cryptocurrency[u'low_bbl'])) * 0.05 and float(cryptocurrency[u'price_usd']) < float(cryptocurrency[u'upp_bbl']):
+
+                msg_sub =   "Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")"
+                msg_body =  "Price for " + cryptocurrency[u'name'] + " currency is within a selling range.\n" \
+                            "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD.\n" \
+                            "Timestamp: " + datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p") + "\n"
+                credentials, addressee = extract_mail_data()
+
+                for username in credentials:
+                    send_mail(username, credentials[username], addressee, msg_sub, msg_body)
+
+            elif float(cryptocurrency[u'price_usd']) < float(cryptocurrency[u'low_bbl']):
 
                 msg_sub =  "Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")"
                 msg_body = "Price for " + cryptocurrency[u'name'] + " currency is within a selling range.\n" \
@@ -186,6 +197,16 @@ def main():
                 for username in credentials:
                     send_mail(username, credentials[username], addressee, msg_sub, msg_body)
 
+            elif float(cryptocurrency[u'price_usd']) > float(cryptocurrency[u'upp_bbl']):
+
+                msg_sub =  "Price Alert (BTRX " + cryptocurrency[u'symbol'] + "/USD @ " + cryptocurrency[u'price_usd'] + ")"
+                msg_body = "Price for " + cryptocurrency[u'name'] + " currency is within a buying range.\n" \
+                           "https://www.coinigy.com/main/markets/BTRX/" + cryptocurrency[u'symbol'] + "/USD.\n" \
+                           "Timestamp: " + datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p") + "\n"
+                credentials, addressee = extract_mail_data()
+
+                for username in credentials:
+                    send_mail(username, credentials[username], addressee, msg_sub, msg_body)
 
         # show all database
         for cryptocurrency in cryptocurrences.find():
@@ -200,7 +221,7 @@ def main():
         u_bbl = []
         l_bbl = []
 
-        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", 1).limit(20):
+        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", 1).limit(50):
             x.append(float(cryptocurrency[u'last_updated']))
             y.append(float(cryptocurrency[u'price_usd']))
             z.append(float(cryptocurrency[u'mov_avg']))
