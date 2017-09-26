@@ -139,7 +139,7 @@ def main():
 
         # calculating numpy std for last updated price in result_to_update
         running_avg = []
-        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", 1).limit(10):
+        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", 1).limit(20):
             # pprint.pprint(cryptocurrency)
             # pprint.pprint(float(cryptocurrency[u'price_usd']))
             running_avg.append(float(cryptocurrency[u'price_usd']))
@@ -221,15 +221,16 @@ def main():
         u_bbl = []
         l_bbl = []
 
-        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", 1).limit(50):
-            x.append(float(cryptocurrency[u'last_updated']))
-            y.append(float(cryptocurrency[u'price_usd']))
-            z.append(float(cryptocurrency[u'mov_avg']))
-            u_bbl.append(float(cryptocurrency[u'upp_bbl']))
-            l_bbl.append(float(cryptocurrency[u'low_bbl']))
+        for cryptocurrency in cryptocurrences.find({u'name': u'Bitcoin'}).sort("last_updated", -1).limit(30):
+            x.insert(0, float(cryptocurrency[u'last_updated']))
+            y.insert(0, float(cryptocurrency[u'price_usd']))
+            z.insert(0, float(cryptocurrency[u'mov_avg']))
+            u_bbl.insert(0, float(cryptocurrency[u'upp_bbl']))
+            l_bbl.insert(0, float(cryptocurrency[u'low_bbl']))
 
         #plt.plot(x, y)
         if first_one:
+            plt.grid()
             my_labels = {"y": "price_usd", "z": "mov_avg", "u_bbl": "upp_bbl", "l_bbl": "low_bbl"}
         else:
             my_labels = {"y": "_nolegend_", "z": "_nolegend_", "u_bbl": "_nolegend_", "l_bbl": "_nolegend_"}
@@ -237,7 +238,7 @@ def main():
         scat2 = plt.plot(x, z, color='blue', marker='o', linestyle='--', label=my_labels["z"])
         scat3 = plt.plot(x, u_bbl, color='green', marker='o', linestyle='--', label=my_labels["u_bbl"])
         scat4 = plt.plot(x, l_bbl, color='green', marker='o', linestyle='--', label=my_labels["l_bbl"])
-        plt.grid()
+        #plt.grid()
         plt.legend(loc='best')
         #plt.show()
         plt.savefig("fig_1")
